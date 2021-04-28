@@ -48,7 +48,7 @@ public class ApplicationSteps {
         browser.shouldHaveText(message);
     }
 
-    @Before
+    @Before(order = 1)
     public void clearDB() {
         userRepo.deleteAll();
     }
