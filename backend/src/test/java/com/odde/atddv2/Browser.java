@@ -1,6 +1,7 @@
 package com.odde.atddv2;
 
 import lombok.SneakyThrows;
+import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
@@ -79,6 +80,6 @@ public class Browser {
     }
 
     private WebElement waitElement(String xpathExpression) {
-        return await().until(() -> webDriver.findElement(xpath(xpathExpression)), Objects::nonNull);
+        return await().ignoreException(NoSuchElementException.class).until(() -> webDriver.findElement(xpath(xpathExpression)), Objects::nonNull);
     }
 }
