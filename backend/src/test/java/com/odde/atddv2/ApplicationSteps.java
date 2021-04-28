@@ -9,7 +9,6 @@ import io.cucumber.java.zh_cn.那么;
 import io.cucumber.spring.CucumberContextConfiguration;
 import lombok.SneakyThrows;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
@@ -49,9 +48,9 @@ public class ApplicationSteps {
     @当("以用户名为{string}和密码为{string}登录时")
     public void 以用户名为和密码为登录时(String userName, String password) {
         webDriver.get("http://localhost:" + serverProperties.getPort() + "/");
-        waitElement("//*[@id=\"app\"]/div/form/div[2]/div/div/input").sendKeys(userName);
-        waitElement("//*[@id=\"app\"]/div/form/div[3]/div/div/input").sendKeys(password);
-        waitElement("//*[@id=\"app\"]/div/form/button/span").click();
+        await().until(() -> webDriver.findElement(xpath("//*[@id=\"app\"]/div/form/div[2]/div/div/input")), Objects::nonNull).sendKeys(userName);
+        await().until(() -> webDriver.findElement(xpath("//*[@id=\"app\"]/div/form/div[3]/div/div/input")), Objects::nonNull).sendKeys(password);
+        await().until(() -> webDriver.findElement(xpath("//*[@id=\"app\"]/div/form/button/span")), Objects::nonNull).click();
     }
 
     @那么("{string}登录成功")
@@ -73,20 +72,14 @@ public class ApplicationSteps {
     private String getChromeDriverBinaryPath() {
         try (Stream<Path> walkStream = Files.walk(Paths.get(System.getProperty("user.home"), ".gradle", "webdriver", "chromedriver"))) {
             return walkStream
-                    .filter(this::isChromeDriverBinary)
+                    .filter(p -> {
+                        return p.toFile().isFile() && (p.toFile().getPath().endsWith("chromedriver")
+                                || p.toFile().getPath().endsWith("chromedriver.exe"));
+                    })
                     .findFirst()
                     .orElseThrow(() -> new IllegalStateException("can't find chrome driver binary"))
                     .toAbsolutePath().toString();
         }
-    }
-
-    private boolean isChromeDriverBinary(Path p) {
-        File file = p.toFile();
-        return file.isFile() && (file.getPath().endsWith("chromedriver") || file.getPath().endsWith("chromedriver.exe"));
-    }
-
-    private WebElement waitElement(String xpathExpression) {
-        return await().until(() -> webDriver.findElement(xpath(xpathExpression)), Objects::nonNull);
     }
 
     @After
