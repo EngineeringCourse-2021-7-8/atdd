@@ -36,7 +36,7 @@ public class Browser {
     }
 
     public void clickByText(String text) {
-        waitElement(String.format("//*[@value='%s' or text()='%s']", text, text)).click();
+        waitElement(String.format("//*[normalize-space(@value)='%s' or normalize-space(text())='%s']", text, text)).click();
     }
 
     public void shouldHaveText(String text) {
@@ -51,6 +51,15 @@ public class Browser {
     public WebDriver createWebDriver() {
         System.setProperty("webdriver.chrome.driver", getChromeDriverBinaryPath());
         return new ChromeDriver();
+    }
+
+    public void selectTextByPlaceholder(String placeholder, String text) {
+        waitElement(String.format("//*[normalize-space(@placeholder)='%s']", placeholder)).click();
+        clickByText(text);
+    }
+
+    public void shouldNotHaveText(String text) {
+        await().untilAsserted(() -> assertThat(webDriver.findElements(xpath("//*[text()='" + text + "']"))).isEmpty());
     }
 
     @SneakyThrows
