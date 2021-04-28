@@ -1,89 +1,55 @@
 package com.odde.atddv2;
 
 import com.odde.atddv2.entity.User;
+import com.odde.atddv2.page.HomePage;
 import com.odde.atddv2.repo.UserRepo;
-import io.cucumber.java.After;
+import io.cucumber.java.Before;
 import io.cucumber.java.zh_cn.假如;
 import io.cucumber.java.zh_cn.当;
 import io.cucumber.java.zh_cn.那么;
 import io.cucumber.spring.CucumberContextConfiguration;
-import lombok.SneakyThrows;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.chrome.ChromeDriver;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.boot.test.context.SpringBootContextLoader;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ContextConfiguration;
-
-import java.io.File;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Objects;
-import java.util.stream.Stream;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.awaitility.Awaitility.await;
-import static org.openqa.selenium.By.xpath;
 
 @ContextConfiguration(classes = {SpringVueApplication.class}, loader = SpringBootContextLoader.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @CucumberContextConfiguration
 public class ApplicationSteps {
-    private final WebDriver webDriver = createWebDriver();
+
+    @Autowired
+    private HomePage homePage;
+
+    @Autowired
+    private Browser browser;
 
     @Autowired
     private UserRepo userRepo;
 
-    @Autowired
-    private ServerProperties serverProperties;
-
     @假如("存在用户名为{string}和密码为{string}的用户")
     public void 存在用户名为和密码为的用户(String userName, String password) {
-        userRepo.deleteAll();
         userRepo.save(new User().setUserName(userName).setPassword(password));
     }
 
     @当("以用户名为{string}和密码为{string}登录时")
     public void 以用户名为和密码为登录时(String userName, String password) {
-        webDriver.get("http://localhost:" + serverProperties.getPort() + "/");
-        await().until(() -> webDriver.findElement(xpath("//*[@id=\"app\"]/div/form/div[2]/div/div/input")), Objects::nonNull).sendKeys(userName);
-        await().until(() -> webDriver.findElement(xpath("//*[@id=\"app\"]/div/form/div[3]/div/div/input")), Objects::nonNull).sendKeys(password);
-        await().until(() -> webDriver.findElement(xpath("//*[@id=\"app\"]/div/form/button/span")), Objects::nonNull).click();
+        homePage.open();
+        homePage.login(userName, password);
     }
 
     @那么("{string}登录成功")
     public void 登录成功(String userName) {
-        await().untilAsserted(() -> assertThat(webDriver.findElements(xpath("//*[text()='" + ("Welcome " + userName) + "']"))).isNotEmpty());
+        browser.shouldHaveText("Welcome " + userName);
     }
 
     @那么("登录失败的错误信息是{string}")
     public void 登录失败的错误信息是(String message) {
-        await().untilAsserted(() -> assertThat(webDriver.findElements(xpath("//*[text()='" + message + "']"))).isNotEmpty());
+        browser.shouldHaveText(message);
     }
 
-    public WebDriver createWebDriver() {
-        System.setProperty("webdriver.chrome.driver", getChromeDriverBinaryPath());
-        return new ChromeDriver();
-    }
-
-    @SneakyThrows
-    private String getChromeDriverBinaryPath() {
-        try (Stream<Path> walkStream = Files.walk(Paths.get(System.getProperty("user.home"), ".gradle", "webdriver", "chromedriver"))) {
-            return walkStream
-                    .filter(p -> {
-                        return p.toFile().isFile() && (p.toFile().getPath().endsWith("chromedriver")
-                                || p.toFile().getPath().endsWith("chromedriver.exe"));
-                    })
-                    .findFirst()
-                    .orElseThrow(() -> new IllegalStateException("can't find chrome driver binary"))
-                    .toAbsolutePath().toString();
-        }
-    }
-
-    @After
-    public void closeBrowser() {
-        webDriver.quit();
+    @Before
+    public void clearDB() {
+        userRepo.deleteAll();
     }
 }
