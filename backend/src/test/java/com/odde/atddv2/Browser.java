@@ -46,7 +46,7 @@ public class Browser {
 
     @PreDestroy
     public void close() {
-        webDriver.close();
+        webDriver.quit();
     }
 
     public WebDriver createWebDriver() {
