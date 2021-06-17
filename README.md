@@ -44,6 +44,16 @@ gradlew.bat cucumber
 You may encounter character encoding issue in terminal. If so, please try to fix it by following this
 link https://akr.am/blog/posts/using-utf-8-in-the-windows-terminal
 
+# Run test in gradle
+## For Linux and Mac
+```shell
+./gradlew cucumber
+```
+## For Windows
+```shell
+gradlew.bat cucumber
+```
+
 # Run the application
 
 ## For Linux and Mac
@@ -61,3 +71,7 @@ gradlew.bat bootRun
 # Open project in IDE
 * Open the project root folder with Intellij Community, then later you can write/run test in Intellij.
 
+# Run test in IDE
+- Open backend/src/test/resources/init.feature in IDE
+- Move cursor to the line `场景: 环境测试`
+- Click item `Run Scenario: 环境测试` in menu `Run`
